@@ -13,7 +13,7 @@ export function writeSidebar(
   navigation: NavigationItem,
 ) {
   const sidebarPath = path.resolve(siteDir, sidebar.sidebarFile);
-
+  console.log(sidebarPath);
   // if output check failed (docs not generated) then gracefully return empty sidebar
   if (!outputCheck) {
     fs.outputFileSync(sidebarPath, `module.exports = [];`);

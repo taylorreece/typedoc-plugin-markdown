@@ -1,11 +1,10 @@
 import * as path from 'path';
 
 import { LoadContext } from '@docusaurus/types';
-import { Application, TSConfigReader, TypeDocReader } from 'typedoc';
+import { MarkdownApplication } from 'typedoc-to-markdown/dist/application';
+import { createTheme } from 'typedoc-to-markdown/dist/theme';
 
-import { DocusaurusFrontMatterComponent } from './front-matter';
 import { writeSidebar } from './sidebar';
-import DocusaurusTheme from './theme/theme';
 import { PluginOptions } from './types';
 
 const DEFAULT_PLUGIN_OPTIONS: PluginOptions = {
@@ -47,7 +46,7 @@ export default async function pluginDocusaurus(
   // Initialize and build app
   if (!apps.includes(options.id)) {
     apps.push(options.id);
-    const app = new Application();
+    const app = new MarkdownApplication();
 
     // TypeDoc options
     const typedocOptions = Object.keys(options).reduce((option, key) => {
@@ -57,29 +56,8 @@ export default async function pluginDocusaurus(
       return option;
     }, {});
 
-    app.options.addReader(new TypeDocReader());
-    app.options.addReader(new TSConfigReader());
-
     // bootstrap TypeDoc app
-    app.bootstrap({
-      // filtered TypeDoc options
-      ...typedocOptions,
-      // TypeDoc plugins
-      plugin: [
-        ...['typedoc-plugin-markdown'],
-        ...(opts.plugin
-          ? opts.plugin.filter((name) => name !== 'typedoc-plugin-markdown')
-          : []),
-      ],
-      // add docusaurus theme
-      theme: path.resolve(__dirname, 'theme'),
-    });
-
-    // add frontmatter component
-    app.renderer.addComponent(
-      'docusaurus-frontmatter',
-      new DocusaurusFrontMatterComponent(app.renderer, options),
-    );
+    app.bootstrap(typedocOptions);
 
     // return the generated reflections
     const project = app.convert();
@@ -96,18 +74,20 @@ export default async function pluginDocusaurus(
       options.out,
     );
 
+    // get pages and navigation
+    const { getPages, getNavigation } = createTheme(project, app.options);
+
     // generate the static docs
-    await app.generateDocs(project, outputDirectory);
+    app.generateMarkdown(project, outputDirectory, getPages());
 
     // write the sidebar (if applicable)
     if (options.sidebar) {
-      const theme = app.renderer.getComponent('theme') as DocusaurusTheme;
       writeSidebar(
-        options.disableOutputCheck || theme.isOutputDirectory(outputDirectory),
+        false,
         siteDir,
         options.out,
         options.sidebar,
-        theme.getNavigation(project),
+        getNavigation(),
       );
     }
   }

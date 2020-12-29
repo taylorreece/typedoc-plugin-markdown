@@ -1,21 +1,23 @@
 {
-  "name": "typedoc-plugin-markdown",
-  "version": "3.1.1",
+  "name": "typedoc-to-markdown",
+  "version": "0.0.0",
   "description": "A plugin for TypeDoc that enables TypeScript API documentation to be generated in Markdown.",
+  "bin": {
+    "typedoc-to-markdown": "./bin/cli.js"
+  },
   "main": "dist/index.js",
   "files": [
     "dist/"
   ],
   "scripts": {
     "lint": "eslint ./src --ext .ts",
-    "prepublishOnly": "npm run lint && npm run build && npm run test",
-    "build": "rm -rf dist && tsc && copyfiles --up 1 ./src/**/*.hbs ./dist/",
-    "test": "jest --colors",
-    "build-and-test": "npm run build && npm run test",
-    "fixtures": "node ./tasks/fixtures.js",
-    "demos": "rm -rf ./demo && npm run build && npm-run-all demo:*",
-    "demo:md": "typedoc --options ./demo.options.json --out ./demo/md",
-    "demo:html": "typedoc --options ./samples/typedoc.examples.json --plugin none --out ./demo/html"
+    "prepublishOnly": "yarn run lint && yarn run build && yarn run test",
+    "build": "rm -rf dist && tsc",
+    "test": "jest --colors --updateSnapshot",
+    "build-and-test": "yarn run build && yarn run test",
+    "demos": "rm -rf ./demo && npm run build && yarn run demo:md && yarn run demo:html",
+    "demo:md": "rm -rf ./demo/md && yarn run build && typedoc-to-markdown --options ./demo.options.json --out ./demo/md",
+    "demo:html": "typedoc --options ./demo.options.json --plugin none --out ./demo/html"
   },
   "author": "Thomas Grey",
   "license": "MIT",
@@ -40,11 +42,8 @@
   "peerDependencies": {
     "typedoc": ">=0.20.0"
   },
-  "dependencies": {
-    "handlebars": "^4.7.6"
-  },
   "devDependencies": {
-    "typedoc": "0.20.0-beta.26",
+    "typedoc": "0.20.0-beta.27",
     "typescript": "^4.0.5"
   }
 }
